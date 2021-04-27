@@ -32,6 +32,12 @@ import Layout from '@/layout'
  */
 export const constantRoutes = [
   {
+    path:'/register',
+    component:() => import('@/views/register/index'),
+    hidden:true
+  },
+
+  {
     path: '/login',
     component: () => import('@/views/login/index'),
     hidden: true
@@ -85,7 +91,7 @@ export const constantRoutes = [
         path: 'index',
         name: 'Form',
         component: () => import('@/views/form/index'),
-        meta: { title: 'Form', icon: 'form' }
+        meta: { title: 'Form', icon: 'form',roles:['admin']}
       }
     ]
   }
@@ -155,12 +161,25 @@ export const asyncRoutes = [
   },
 
   {
-    path: 'external-link',
+    path: '/user_manager',
     component: Layout,
-    children: [
+    redirect: '/usermanager/user',
+    meta:{title:'用户管理' , roles:['管理员'] , icon : 'user'},
+    children:[
       {
-        path: 'https://panjiachen.github.io/vue-element-admin-site/#/',
-        meta: { title: 'External Link', icon: 'link' }
+        path:'user',
+        component:() => import('@/views/usermanager/user/index'),
+        meta: {title : '用户' , roles:['管理员'],icon : 'user'}
+      },
+      {
+        path:'role',
+        component: () => import("@/views/usermanager/role/index"),
+        meta: { title : '角色' , roles : ['管理员'] , icon : 'user'}
+      },
+      {
+        path : 'permission',
+        component : () => import("@/views/usermanager/permission/index"),
+        meta: { title : '权限' , roles : ['管理员'] , icon : 'key'}
       }
     ]
   },
@@ -179,6 +198,7 @@ const router = createRouter()
 
 // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 export function resetRouter() {
+  console.log("准备重置路由")
   const newRouter = createRouter()
   router.matcher = newRouter.matcher // reset router
 }

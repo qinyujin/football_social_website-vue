@@ -7,7 +7,7 @@ import { getToken } from '@/utils/auth'
 const service = axios.create({
   baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
   // withCredentials: true, // send cookies when cross-domain requests
-  timeout: 5000 // request timeout
+  timeout: 500000 // request timeout
 })
 
 // request interceptor
@@ -19,7 +19,8 @@ service.interceptors.request.use(
       // let each request carry token
       // ['X-Token'] is a custom headers key
       // please modify it according to the actual situation
-      config.headers['X-Token'] = getToken()
+      // config.headers['X-Token'] = getToken()
+      config.headers['authorization'] = getToken()
     }
     return config
   },
@@ -35,7 +36,7 @@ service.interceptors.response.use(
   /**
    * If you want to get http information such as headers or status
    * Please return  response => response
-  */
+   */
 
   /**
    * Determine the request status by custom code
@@ -45,8 +46,9 @@ service.interceptors.response.use(
   response => {
     const res = response.data
 
-    // if the custom code is not 20000, it is judged as an error.
-    if (res.code !== 20000) {
+    console.log('response code：' + res.code)
+    // if the custom code is not 200, it is judged as an error.
+    if (res.code !== 200) {
       Message({
         message: res.message || 'Error',
         type: 'error',
@@ -64,6 +66,11 @@ service.interceptors.response.use(
           store.dispatch('user/resetToken').then(() => {
             location.reload()
           })
+        })
+      }
+      if(res.code == 401 && res.message == '"token校验失败!"'){
+        store.dispatch('user/resetToken').then(() =>{
+          location.reload()
         })
       }
       return Promise.reject(new Error(res.message || 'Error'))

@@ -32,16 +32,18 @@ const mutations = {
 }
 
 const actions = {
-  // user login
+  // 用户登陆
   login({ commit }, userInfo) {
-    const { username, password } = userInfo
+    const { num, password, verify } = userInfo
+    console.log('请求登录'+verify);
     return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
+      login({ num: num, password: password, verify: verify }).then(response => {
         const { data } = response
-        commit('SET_TOKEN', data.token)
-        setToken(data.token)
+        commit('SET_TOKEN',data)
+        setToken(data)
         resolve()
       }).catch(error => {
+        console.log('登陆失败')
         reject(error)
       })
     })
@@ -76,6 +78,7 @@ const actions = {
 
   // user logout
   logout({ commit, state }) {
+    console.log("准备退出")
     return new Promise((resolve, reject) => {
       logout(state.token).then(() => {
         removeToken() // must remove  token  first

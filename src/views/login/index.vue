@@ -3,18 +3,18 @@
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
 
       <div class="title-container">
-        <h3 class="title">Login Form</h3>
+        <h3 class="title">足坛社交网站</h3>
       </div>
 
-      <el-form-item prop="username">
+      <el-form-item prop="num">
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
         <el-input
-          ref="username"
-          v-model="loginForm.username"
-          placeholder="Username"
-          name="username"
+          ref="num"
+          v-model="loginForm.num"
+          placeholder="num"
+          name="num"
           type="text"
           tabindex="1"
           auto-complete="on"
@@ -41,44 +41,94 @@
         </span>
       </el-form-item>
 
-      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">Login</el-button>
+      <el-row>
+        <el-col :span="20">
+          <el-form-item prop="verify">
+            <span class="svg-container">
+              <i class="el-icon-circle-check" />
+            </span>
+            <el-input
+              ref="verify"
+              v-model="loginForm.verify"
+              placeholder="验证码"
+              name="verify"
+              type="text"
+              tabindex="3"
+              auto-complete="on"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col :span="4">
+          <span class="svg-container">
+            <img
+              ref="verifyimg"
+              style="height:30px;width:50px;margin-top:5px"
+              @click="getvCode()"
+            >
+          </span>
+        </el-col>
+      </el-row>
 
-      <div class="tips">
-        <span style="margin-right:20px;">username: admin</span>
-        <span> password: any</span>
-      </div>
+      <el-row>
+        <!-- 注册 -->
+        <el-col :span="10">
+          <el-button
+          style="width:100%;margin-bottom:30px;"
+          @click="gotoRegister"
+          >注册</el-button>
+        </el-col>
 
+        <!-- 登录 -->
+        <el-col :span="10" :offset="4">
+        <el-button
+        :loading="loading"
+        type="primary"
+        style="width:100%;margin-bottom:30px;"
+        @click.native.prevent="handleLogin"
+      >登录</el-button>
+        </el-col>
+      </el-row>
+
+      <el-button @click="test">test</el-button>
     </el-form>
   </div>
 </template>
 
 <script>
-import { validUsername } from '@/utils/validate'
+import { validnum } from '@/utils/validate';
+import {login} from "@/api/user.js";
 
 export default {
   name: 'Login',
+  created(){
+    console.log("页面初始化");
+    this.$nextTick(function() {
+      this.getvCode()
+    })
+  },
   data() {
-    const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
-        callback(new Error('Please enter the correct user name'))
+    const validatePassword = (rule, value, callback) => {
+      if (value.length < 6) {
+        callback(new Error('密码长度不小于6位'))
       } else {
         callback()
       }
     }
-    const validatePassword = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error('The password can not be less than 6 digits'))
+    const validateNum = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('账号不能为空'))
       } else {
         callback()
       }
     }
     return {
       loginForm: {
-        username: 'admin',
-        password: '111111'
+        num: '001',
+        password: '123456',
+        verify:null
       },
       loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
+         num: [{ required: true, trigger: 'blur', validator: validateNum }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       loading: false,
@@ -88,9 +138,9 @@ export default {
   },
   watch: {
     $route: {
-      handler: function(route) {
+      /*handler: function(route) {
         this.redirect = route.query && route.query.redirect
-      },
+      },*/
       immediate: true
     }
   },
@@ -106,10 +156,15 @@ export default {
       })
     },
     handleLogin() {
+      console.log('num:'+this.loginForm.num + 'pwd:'+this.loginForm.password + 'verify:'+this.loginForm.verify)
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('user/login', this.loginForm).then(() => {
+          this.$store.dispatch('user/login', {
+            num:this.loginForm.num,
+            password:"123456",
+            verify:this.loginForm.verify
+          }).then(() => {
             this.$router.push({ path: this.redirect || '/' })
             this.loading = false
           }).catch(() => {
@@ -120,6 +175,27 @@ export default {
           return false
         }
       })
+    },
+    getvCode() {
+      // 给图片请求地址url加上时间戳属性，保证每次刷新的验证码都不一样
+      this.$refs.verifyimg.src = this.timestamp(
+        'http://127.0.0.1:8002/api/verifyCode'
+      )
+    },
+    timestamp(url) {
+      var getTimestamp = new Date().getTime()
+      if (url.indexOf('?') > -1) {
+        url = url + '&timestamp=' + getTimestamp
+      } else {
+        url = url + '?timestamp=' + getTimestamp
+      }
+      return url
+    },
+    //跳转注册页面
+    gotoRegister(){
+      this.$router.replace('/register')
+    },
+    test(){
     }
   }
 }
